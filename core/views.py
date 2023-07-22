@@ -37,7 +37,11 @@ def lista_eventos(request):
 
 @login_required(login_url='/login/')
 def eventu(request):
-    return render(request, 'eventu.html')
+    id_evento = request.GET.get('id')
+    dados = {}
+    if id_evento:
+        dados['eventu'] = evento.objects.get(id=id_evento)
+    return render(request, 'eventu.html', dados)
 
 @login_required(login_url='/login/')
 def submit_eventu(request):
@@ -46,8 +50,29 @@ def submit_eventu(request):
         data_evento = request.POST.get('data_evento')
         descricao = request.POST.get('descricao')
         usuario = request.user
-        evento.objects.create(titulo=titulo,
-                              data_evento=data_evento,
-                              descricao=descricao,
-                              usuario=usuario)
+        id_evento = request.POST.get('id_evento')
+
+        if id_evento:  # Verifica se é uma edição de evento existente
+            eventu = evento.objects.get(id=id_evento)
+            if eventu.usuario == usuario:  # Verifica se o usuário é o dono do evento
+                eventu.titulo = titulo
+                eventu.data_evento = data_evento
+                eventu.descricao = descricao
+                eventu.save()
+        else:  # Caso contrário, cria um novo evento
+            evento.objects.create(titulo=titulo,
+                                  data_evento=data_evento,
+                                  descricao=descricao,
+                                  usuario=usuario)
+
     return redirect('/')
+
+
+@login_required(login_url='/login/')
+def delete_evento(request, id_evento):
+    usuario = request.user
+    eventu = evento.objects.get(id=id_evento)
+    if usuario == eventu.usuario:
+        eventu.delete()
+    return redirect('/')
+

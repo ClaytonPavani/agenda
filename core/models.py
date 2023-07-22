@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Create your models here.
 
@@ -18,3 +19,7 @@ class evento(models.Model):
 
     def get_data_evento(self):
         return self.data_evento.strftime('%d/%m/%Y %H:%M Hrs')
+
+    def get_data_input_evento(self):
+        # Formata a data corretamente no fuso horário do servidor (timezone-aware)
+        return timezone.localtime(self.data_evento).strftime('%Y-%m-%dT%H:%M')
